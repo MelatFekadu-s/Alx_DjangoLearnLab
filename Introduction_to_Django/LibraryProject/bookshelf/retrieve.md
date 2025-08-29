@@ -1,4 +1,6 @@
 ```python
 from bookshelf.models import Book
-book = Book.objects.get(id=1)
-print(book.title, book.author, book.publication_year)
+book = Book.objects.get(title="1984")
+print(book.title)
+print(book.author)
+print(book.publication_year)
