@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.views.generic.detail import DetailView
-from .models import Library
-from .models import Book
-from django.contrib.auth.decorators import user_passes_test
-
+from django.contrib.auth.decorators import user_passes_test, permission_required
+from .models import Book, Library
+from .models import Library, Book
+from django.contrib.auth.decorators import permission_required
 
 def list_books(request):
     books = Book.objects.all()
@@ -16,12 +18,39 @@ class LibraryDetailView(DetailView):
     context_object_name = "library"
 
 
+def register_view(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("list_books")
+    else:
+        form = UserCreationForm()
+    return render(request, "relationship_app/register.html", {"form": form})
+
+
+def login_view(request):
+    form = AuthenticationForm(request, data=request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.get_user()
+        login(request, user)
+        return redirect("list_books")
+    return render(request, "relationship_app/login.html", {"form": form})
+
+
+def logout_view(request):
+    logout(request)
+    return render(request, "relationship_app/logout.html")
+
 
 def is_admin(user):
     return hasattr(user, 'userprofile') and user.userprofile.role == 'Admin'
 
+
 def is_librarian(user):
     return hasattr(user, 'userprofile') and user.userprofile.role == 'Librarian'
+
 
 def is_member(user):
     return hasattr(user, 'userprofile') and user.userprofile.role == 'Member'
@@ -40,3 +69,18 @@ def librarian_view(request):
 @user_passes_test(is_member)
 def member_view(request):
     return render(request, "relationship_app/member_view.html")
+
+
+@permission_required('relationship_app.can_add_book')
+def add_book_view(request):
+    return render(request, "relationship_app/add_book.html")
+
+
+@permission_required('relationship_app.can_change_book')
+def edit_book_view(request):
+    return render(request, "relationship_app/edit_book.html")
+
+
+@permission_required('relationship_app.can_delete_book')
+def delete_book_view(request):
+    return render(request, "relationship_app/delete_book.html")
