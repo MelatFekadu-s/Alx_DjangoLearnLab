@@ -1,7 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
-
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
@@ -27,9 +26,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self.create_user(username, email, password, **extra_fields)
-
-
-class CustomUser(AbstractUser, PermissionsMixin):
+class CustomUser(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
     date_of_birth = models.DateField(null=True, blank=True)
     profile_photo = models.ImageField(upload_to="profile_photos/", null=True, blank=True)
